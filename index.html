@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SOC L1 Daily Security Alert Status Tracker and Live Status Dashboard for Security Operations Center analysts and Team Leads.">
+  <title>SOC L1 Daily Alert Status Tracker & Live Dashboard</title>
+
+  <!-- Typography: Google Fonts Manrope (Headings/Titles/KPIs), Inter (UI Body/Data/Buttons) & JetBrains Mono (Telemetry/IPs) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            heading: ['Manrope', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            soc: {
+              navy: '#0b1120',
+              slate: '#0f172a',
+              card: '#ffffff',
+              accent: '#0284c7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js CDN for Severity Pie Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Local Standalone jsPDF & AutoTable for High-Fidelity Executive PDF Generation -->
+  <script src="js/jspdf.umd.min.js"></script>
+  <script src="js/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="cyber-command-bg text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-200 selection:text-sky-900 relative overflow-x-hidden">
+
+  <!-- DYNAMIC 3-SECOND FULL-SCREEN EPIC COSMIC GALAXY WELCOME SCREEN -->
+  <div id="welcome-splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#02040a] text-white overflow-hidden transition-all duration-700 select-none">
+    
+    <!-- Full-Screen Dynamic 3D Cosmic Galaxy Canvas -->
+    <canvas id="splash-galaxy-canvas" class="absolute inset-0 pointer-events-none z-0"></canvas>
+    <canvas id="splash-feathers-canvas" class="hidden"></canvas>
+
+    <!-- Deep Space Celestial Nebula Backlight Glow -->
+    <div class="absolute w-[680px] h-[680px] rounded-full bg-gradient-to-tr from-purple-900/35 via-sky-600/25 to-amber-500/15 blur-[120px] pointer-events-none animate-pulse"></div>
+
+    <!-- Center Interstellar Monogram Emblem & Progress Bar -->
+    <div class="relative z-10 flex flex-col items-center text-center px-4 max-w-xl">
+      
+      <!-- Rotating Cosmic Celestial Rings & JK Star Monogram -->
+      <div class="relative mb-7 flex items-center justify-center">
+        <!-- Outer Astrolabe Coordinate Ring -->
+        <div class="absolute w-56 h-56 rounded-full border border-sky-500/30 border-dashed animate-spin" style="animation-duration: 35s;"></div>
+        <!-- Celestial Orbital Ellipse -->
+        <div class="absolute w-48 h-48 rounded-full border border-purple-400/40 border-dotted animate-spin" style="animation-duration: 22s; animation-direction: reverse;"></div>
+        <!-- Supernova Event Horizon Radiant Halo Ring -->
+        <div class="absolute w-36 h-36 rounded-full border-2 border-amber-400/40 shadow-[0_0_35px_rgba(245,158,11,0.5)] animate-pulse"></div>
+
+        <!-- High-res JK Interstellar Celestial Emblem -->
+        <div class="w-32 h-32 rounded-full p-2.5 bg-gradient-to-b from-slate-900 via-[#070b19] to-[#02040a] border-2 border-amber-400/90 shadow-[0_0_60px_rgba(56,189,248,0.45)] flex items-center justify-center transform transition-transform hover:scale-105 duration-300 relative z-10">
+          <svg class="w-full h-full drop-shadow-[0_0_15px_rgba(253,224,71,0.6)]" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="galaxyEmblemCore" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#1e1b4b"/>
+                <stop offset="55%" stop-color="#0f172a"/>
+                <stop offset="100%" stop-color="#02040a"/>
+              </radialGradient>
+              <linearGradient id="cosmicGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fef08a"/>
+                <stop offset="35%" stop-color="#f59e0b"/>
+                <stop offset="80%" stop-color="#d97706"/>
+                <stop offset="100%" stop-color="#92400e"/>
+              </linearGradient>
+              <linearGradient id="cosmicCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="30%" stop-color="#bae6fd"/>
+                <stop offset="70%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#0284c7"/>
+              </linearGradient>
+              <filter id="cosmicGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+
+            <!-- Celestial Core Ring with Golden Starlight Rim -->
+            <circle cx="80" cy="80" r="74" fill="url(#galaxyEmblemCore)" stroke="url(#cosmicGold)" stroke-width="2.5"/>
+            <circle cx="80" cy="80" r="69" stroke="rgba(56, 189, 248, 0.3)" stroke-width="1.2" stroke-dasharray="4 3"/>
+
+            <!-- Interstellar 8-Point Diamond Star Compass at Center -->
+            <path d="M 80 18 L 83 72 L 137 80 L 83 88 L 80 142 L 77 88 L 23 80 L 77 72 Z" fill="rgba(56, 189, 248, 0.12)"/>
+            <path d="M 80 28 L 82 74 L 128 80 L 82 86 L 80 132 L 78 86 L 32 80 L 78 74 Z" fill="url(#cosmicCyan)" opacity="0.3"/>
+
+            <!-- Orbit Trajectory Ring Across Monogram -->
+            <ellipse cx="80" cy="80" rx="58" ry="24" transform="rotate(-30 80 80)" stroke="url(#cosmicCyan)" stroke-width="1.5" opacity="0.75"/>
+            <circle cx="126" cy="54" r="3.5" fill="#fde047" filter="url(#cosmicGlow)"/>
+
+            <!-- LETTER "J" (Precision Cosmic Cyan Serif) -->
+            <path d="M 50 42 L 72 42 L 72 48 L 64 48 L 64 96 C 64 107, 57 117, 44 117 C 36 117, 30 112, 28 106 C 26 102, 28 97, 32 95 C 36 93, 41 95, 41 99 C 41 104, 46 106, 52 102 C 56 99, 58 93, 58 87 L 58 48 L 50 48 Z" fill="url(#cosmicCyan)"/>
+
+            <!-- LETTER "K" (Burnished Gold Interlocking Cyber Monogram) -->
+            <path d="M 64 74 L 88 46 L 102 46 L 78 72 L 106 112 L 92 112 L 71 82 L 64 89 L 64 112 L 58 112 L 58 74 Z" fill="url(#cosmicGold)" filter="url(#cosmicGlow)"/>
+            <polygon points="86,46 104,46 100,51 88,51" fill="url(#cosmicGold)"/>
+            <polygon points="92,107 109,107 106,112 89,112" fill="url(#cosmicGold)"/>
+
+            <!-- Center Singularity / Supernova Core Starburst -->
+            <circle cx="78" cy="72" r="3" fill="#ffffff" filter="url(#cosmicGlow)"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Brand Heading with Manrope Typography -->
+      <h1 class="typography-main-title text-3xl sm:text-4xl font-extrabold tracking-wider uppercase font-heading text-white flex items-center justify-center gap-2 mb-1.5 drop-shadow-[0_0_30px_rgba(56,189,248,0.4)]">
+        <span class="text-amber-400">JK</span>
+        <span class="text-slate-100">DEFENSE</span>
+        <span class="text-sky-400 font-mono-code text-2xl sm:text-3xl">SOC-L1</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-300 tracking-[0.22em] uppercase font-mono-code mb-7">
+        Interstellar Incident Command & Threat Telemetry Matrix
+      </p>
+
+      <!-- 3-Second Loading Progress Bar & Telemetry Status -->
+      <div class="w-full max-w-sm space-y-2.5">
+        <div class="flex items-center justify-between text-xs font-mono-code text-slate-300">
+          <span id="splash-status-text" class="flex items-center gap-2 truncate">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-semibold tracking-wider">INITIALIZING DEEP SPACE SENSORS...</span>
+          </span>
+          <span id="splash-pct-text" class="font-bold text-amber-400 ml-2">0%</span>
+        </div>
+
+        <div class="w-full h-2 bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-sky-500/40 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+          <div id="splash-progress-bar" class="h-full bg-gradient-to-r from-purple-500 via-sky-400 to-amber-400 rounded-full w-0 transition-all duration-75 ease-linear shadow-[0_0_16px_rgba(56,189,248,0.8)]"></div>
+        </div>
+      </div>
+
+      <!-- Direct Skip Button -->
+      <button id="btn-skip-splash" class="mt-7 text-xs font-mono-code text-slate-300 hover:text-white px-5 py-2 rounded-full border border-sky-500/40 hover:border-sky-400 bg-slate-900/80 hover:bg-sky-950/70 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all flex items-center gap-2 cursor-pointer group">
+        <span>Enter Command Console</span>
+        <span class="group-hover:translate-x-1 transition-transform">→</span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- EXECUTIVE AMBIENT CYBER DEFENSE BACKGROUND (Modern Light Theme System) -->
+  <div id="executive-ambient-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <!-- Precision Micro-Dot Matrix Layer -->
+    <div class="executive-grid-overlay absolute inset-0"></div>
+
+    <!-- Dynamic Soft Floating Ambient Aurora Orbs (GPU Accelerated, Silky Smooth) -->
+    <div class="ambient-aurora-orb orb-primary"></div>
+    <div class="ambient-aurora-orb orb-secondary"></div>
+    <div class="ambient-aurora-orb orb-accent"></div>
+
+    <!-- Interactive Cursor Ambient Spotlight Glow -->
+    <div id="executive-cursor-glow" class="absolute pointer-events-none opacity-0"></div>
+  </div>
+
+  <!-- TOP SOC NAV BAR & EXECUTIVE MENU BAR (Fluid Full-Width Layout) -->
+  <header class="border-b border-slate-200/90 bg-white/95 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-2.5 shadow-sm relative w-full">
+    <div class="max-w-[1880px] mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Brand & JK Luxury Feather Monogram Logo -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="jk-feather-emblem" title="JK Cyber Defense Command Center">
+          <svg class="w-10 h-10" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="jkEmblemBg" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#1e293b"/>
+                <stop offset="70%" stop-color="#0f172a"/>
+                <stop offset="100%" stop-color="#020617"/>
+              </radialGradient>
+              <linearGradient id="silverPlume" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="35%" stop-color="#f8fafc"/>
+                <stop offset="65%" stop-color="#94a3b8"/>
+                <stop offset="100%" stop-color="#475569"/>
+              </linearGradient>
+              <linearGradient id="goldShaft" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fef08a"/>
+                <stop offset="30%" stop-color="#f59e0b"/>
+                <stop offset="70%" stop-color="#d97706"/>
+                <stop offset="100%" stop-color="#78350f"/>
+              </linearGradient>
+              <linearGradient id="goldK" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fde047"/>
+                <stop offset="35%" stop-color="#f59e0b"/>
+                <stop offset="75%" stop-color="#b45309"/>
+                <stop offset="100%" stop-color="#78350f"/>
+              </linearGradient>
+              <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+
+            <!-- Circular backdrop with metallic gold rim -->
+            <circle cx="80" cy="80" r="76" fill="url(#jkEmblemBg)" stroke="url(#goldShaft)" stroke-width="2.5"/>
+            <circle cx="80" cy="80" r="71" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1"/>
+
+            <!-- CRESCENT FEATHER: Outer Silver Plumes -->
+            <path d="M 48 22 C 35 33, 23 52, 19 72 L 31 66 C 26 76, 20 88, 19 100 L 30 94 C 24 104, 25 116, 34 123 L 42 117 C 38 126, 45 134, 55 138 L 60 131 C 59 138, 68 142, 78 142 C 86 142, 98 138, 110 128 C 88 138, 64 135, 49 126 C 33 115, 26 95, 28 74 C 30 54, 42 35, 54 23 Z" fill="url(#silverPlume)"/>
+
+            <!-- CRESCENT FEATHER: Inner Radiant Gold Spine -->
+            <path d="M 54 23 C 44 37, 35 55, 33 75 C 31 95, 37 115, 53 126 C 67 136, 88 137, 112 127 C 126 120, 141 108, 152 93 C 134 106, 116 115, 97 119 C 74 122, 54 115, 44 103 C 35 91, 36 75, 40 59 C 44 45, 50 33, 54 23 Z" fill="url(#goldShaft)" filter="url(#goldGlow)"/>
+
+            <!-- LETTER "J" (Metallic Silver Serif Monogram) -->
+            <g id="monogram-j">
+              <path d="M 52 38 L 74 38 L 74 44 L 66 44 L 66 94 C 66 104, 60 114, 48 116 C 40 117, 34 113, 31 108 C 29 104, 30 99, 34 97 C 38 95, 43 97, 43 101 C 43 106, 48 107, 54 103 C 58 100, 60 94, 60 88 L 60 44 L 52 44 Z" fill="url(#silverPlume)"/>
+            </g>
+
+            <!-- LETTER "K" (Burnished Gold Interlocking Monogram) -->
+            <g id="monogram-k">
+              <path d="M 66 74 L 88 48 L 99 48 L 77 72 L 103 110 L 91 110 L 71 80 L 66 86 L 66 110 L 60 110 L 60 74 Z" fill="url(#goldK)" filter="url(#goldGlow)"/>
+              <path d="M 85 48 L 102 48 L 99 52 L 87 52 Z" fill="url(#goldK)"/>
+              <path d="M 91 106 L 107 106 L 105 110 L 89 110 Z" fill="url(#goldK)"/>
+            </g>
+
+            <!-- Swoosh Quill Tail Under K -->
+            <path d="M 60 123 C 82 125, 114 117, 150 93 C 122 105, 92 113, 64 117 Z" fill="url(#goldShaft)"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-wider uppercase flex items-center gap-1.5 font-mono-code">
+              <span class="text-amber-600">JK</span>
+              <span class="text-slate-900">DEFENSE</span>
+              <span class="text-sky-600">SOC-L1</span>
+            </h1>
+            <span id="db-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-widest bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono-code flex items-center gap-1.5 shadow-sm" title="Data is permanently stored in data/soc_database.json">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>DB SAFE</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden xl:block">Incident Command & Threat Telemetry Console • Tier-1 Operations</p>
+        </div>
+      </div>
+
+      <!-- Center Menu Bar Navigation -->
+      <nav class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner" aria-label="Main Navigation">
+        <button id="nav-tab-page1" class="btn-molded px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all text-white bg-sky-600 shadow-md flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Daily Alerts Tracker</span>
+        </button>
+        <button id="nav-tab-page2" class="btn-molded px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Monthly SLA & Severity</span>
+        </button>
+      </nav>
+
+      <!-- Right Menu Actions: + Log Alert, Today PDF, Settings, Backup, Demo, Clear -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btn-top-log-alert" title="Quickly Log a New Security Alert" class="btn-molded btn-molded-primary px-3.5 py-2 text-xs font-bold text-white shadow-md">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          <span>+ Log Alert</span>
+        </button>
+
+        <button id="btn-quick-today-pdf" title="Generate clean professional Daily Incident PDF Report for Team Lead" class="btn-molded btn-molded-secondary px-3 py-2 text-xs font-semibold">
+          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          <span class="hidden md:inline">Today Report (PDF)</span>
+        </button>
+
+        <!-- NEW: Settings Button to configure sources, clients, SLA -->
+        <button id="btn-open-settings" title="Configure Telemetry Sources, Client Mappings, and SLA Targets" class="btn-molded btn-molded-secondary px-3 py-2 text-xs font-semibold">
+          <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="hidden lg:inline">Settings</span>
+        </button>
+
+        <button id="btn-backup-json" title="Download Full JSON Snapshot & Disk DB" class="btn-molded btn-molded-secondary px-3 py-2 text-xs font-semibold">
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="hidden xl:inline">Backup</span>
+        </button>
+
+        <button id="btn-reset-sample-data" title="Reload realistic sample SOC dataset" class="btn-molded btn-molded-secondary px-3 py-2 text-xs font-semibold">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="hidden xl:inline">Seed Demo</span>
+        </button>
+
+        <button id="btn-clear-all-data" title="Wipe all alerts and start fresh shift" class="btn-molded btn-molded-danger px-3 py-2 text-xs font-semibold">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span class="hidden xl:inline">Clear</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT CONTAINER (Fluid Wide Layout - No Wasteful Side Margins) -->
+  <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-[1880px] mx-auto relative z-10">
+    
+    <!-- PAGE 1: DAILY DASHBOARD ("SOC Alert Tracker") -->
+    <div id="page1-container" class="transition-opacity duration-200">
+      <!-- Injected via bundle.js / initPage1 -->
+    </div>
+
+    <!-- PAGE 2: MONTHLY SLA & SEVERITY SUMMARY -->
+    <div id="page2-container" class="hidden transition-opacity duration-200">
+      <!-- Injected via bundle.js / initPage2 -->
+    </div>
+
+  </main>
+
+  <!-- MODAL: ADD / EDIT ALERT -->
+  <div id="alert-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <!-- Backdrop -->
+    <div id="alert-modal-backdrop" class="modal-backdrop fixed inset-0"></div>
+
+    <!-- Modal Box (Crisp Executive Light Theme) -->
+    <div class="modal-content relative z-10 w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center font-bold">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div>
+            <h3 id="alert-modal-title" class="text-base font-bold text-slate-900">Log New Security Alert</h3>
+            <p id="alert-modal-subtitle" class="text-xs text-slate-500">ID will be auto-generated</p>
+          </div>
+        </div>
+        <button id="btn-close-alert-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form) -->
+      <form id="alert-form" class="p-6 overflow-y-auto space-y-4 text-xs" novalidate>
+        
+        <!-- Row 1: Date & Time (with AM/PM Support) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="modal-alert-date" class="block font-semibold text-slate-700 mb-1">Alert Date</label>
+            <input 
+              type="date" 
+              id="modal-alert-date" 
+              required
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-mono-code focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div>
+            <label for="modal-alert-time" class="block font-semibold text-slate-700 mb-1">
+              Alert Time (with AM / PM)
+            </label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="modal-alert-time" 
+                required
+                placeholder="09:30:00"
+                class="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-mono-code focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all"
+              />
+              <select 
+                id="modal-alert-ampm" 
+                class="w-20 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-2.5 py-2 font-bold font-mono-code focus:ring-2 focus:ring-sky-500 focus:bg-white cursor-pointer"
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+              <button 
+                type="button" 
+                id="btn-alert-time-now" 
+                title="Stamp Current Time" 
+                class="px-2.5 py-2 text-[11px] font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Now
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Source & Dynamic Client Selection Box -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-sky-50/50 rounded-xl border border-sky-100">
+          <div>
+            <label for="modal-alert-source" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Telemetry Source</span>
+              <span class="text-[10px] text-sky-700 font-mono-code">Configurable in Settings</span>
+            </label>
+            <select id="modal-alert-source" required class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500">
+              <!-- Dynamically populated from settings -->
+            </select>
+          </div>
+
+          <!-- Dynamic Client Dropdown: Wazuh -> Giib, Indicosmic, Quantique | Sophos -> NGM, Brysa, mirror -->
+          <div id="modal-client-container">
+            <label for="modal-alert-client" class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <span id="modal-client-label">Client Name</span>
+              <span id="modal-client-tag" class="text-[10px] text-sky-700 font-bold px-1.5 py-0.2 rounded bg-sky-100 border border-sky-200">Client Option</span>
+            </label>
+            <select id="modal-alert-client" required class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-semibold text-sky-900 focus:ring-2 focus:ring-sky-500">
+              <!-- Dynamically populated based on selected Source -->
+            </select>
+            <p id="modal-client-hint" class="text-[10px] text-slate-500 mt-1 font-mono-code">Select client corresponding to the telemetry source.</p>
+          </div>
+        </div>
+
+        <!-- Row 3: Endpoint Name & IP Address -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="modal-alert-endpoint" class="block font-semibold text-slate-700 mb-1">
+              Endpoint Name (Hostname)
+            </label>
+            <input 
+              type="text" 
+              id="modal-alert-endpoint" 
+              required
+              placeholder="e.g. WS-FIN-09, SRV-APP-01, DESKTOP-XYZ"
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-mono-code focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div>
+            <label for="modal-alert-ip" class="block font-semibold text-slate-700 mb-1">
+              IP Address (Source / Target)
+            </label>
+            <input 
+              type="text" 
+              id="modal-alert-ip" 
+              required
+              placeholder="e.g. 192.168.1.50 or 10.0.4.12"
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-mono-code focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Row 4: Alert Type, Severity & Level (Integer Input) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="modal-alert-type" class="block font-semibold text-slate-700 mb-1">Alert Type</label>
+            <select id="modal-alert-type" required class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-500 focus:bg-white">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label for="modal-alert-severity" class="block font-semibold text-slate-700 mb-1">Severity</label>
+            <select id="modal-alert-severity" required class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-bold focus:ring-2 focus:ring-sky-500 focus:bg-white">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label for="modal-alert-level" class="block font-semibold text-slate-700 mb-1">Level</label>
+            <input 
+              type="number" 
+              id="modal-alert-level" 
+              step="1" 
+              min="1" 
+              max="20"
+              value="1"
+              required
+              placeholder="e.g. 1, 2, 3..." 
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-mono-code font-bold focus:ring-2 focus:ring-sky-500 focus:border-sky-500 focus:bg-white transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Row 5: Status & Resolution Time -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="modal-alert-status" class="block font-semibold text-slate-700 mb-1">Status</label>
+            <select id="modal-alert-status" required class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-bold focus:ring-2 focus:ring-sky-500 focus:bg-white">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div>
+            <label for="modal-alert-resolution" class="block font-semibold text-slate-700 mb-1">
+              Resolution Time (Optional Free-Text)
+              <span class="text-[10px] text-slate-500 font-normal ml-1">— e.g. 15m, 1h 20m</span>
+            </label>
+            <input 
+              type="text" 
+              id="modal-alert-resolution" 
+              placeholder="e.g. 20m or 1h 10m"
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sky-500 focus:bg-white"
+            />
+          </div>
+        </div>
+
+        <!-- Row 6: Escalated? & Escalated To -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div class="sm:col-span-5 flex items-center gap-3">
+            <input 
+              type="checkbox" 
+              id="modal-alert-escalated" 
+              class="w-4 h-4 rounded text-rose-600 bg-white border-slate-300 focus:ring-rose-500 cursor-pointer"
+            />
+            <label for="modal-alert-escalated" class="font-semibold text-slate-800 cursor-pointer">
+              Escalate to Tier 2 / Lead?
+            </label>
+          </div>
+
+          <div id="modal-escalated-to-group" class="sm:col-span-7 opacity-40 transition-opacity">
+            <label for="modal-alert-escalated-to" class="block font-semibold text-slate-700 mb-1">Escalated To (Team/Role)</label>
+            <select id="modal-alert-escalated-to" disabled class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 7: Remarks -->
+        <div>
+          <label for="modal-alert-remarks" class="block font-semibold text-slate-700 mb-1">Remarks / Analyst Triage Notes</label>
+          <textarea 
+            id="modal-alert-remarks" 
+            rows="3" 
+            placeholder="Provide context, hostnames, IPs involved, triage actions taken, or reason for false positive..."
+            class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-3 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:bg-white"
+          ></textarea>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button type="button" onclick="document.getElementById('alert-modal').classList.add('hidden')" class="btn-molded btn-molded-secondary px-4 py-2 text-xs font-semibold">
+            Cancel
+          </button>
+          <button type="submit" id="btn-save-security-alert" class="btn-molded btn-molded-primary px-5 py-2 text-xs font-bold text-white shadow-md cursor-pointer">
+            Save Security Alert
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS & TELEMETRY CONFIGURATION -->
+  <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div id="settings-modal-backdrop" class="modal-backdrop fixed inset-0"></div>
+
+    <div class="modal-content relative z-10 w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Settings Header -->
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center font-bold">
+            ⚙️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">SOC Console Configuration & Settings</h3>
+            <p class="text-xs text-slate-500">Configure Telemetry Sources, Client Mappings (Wazuh / Sophos), and SLA Thresholds</p>
+          </div>
+        </div>
+        <button id="btn-close-settings-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Settings Tabs Navigation -->
+      <div class="flex items-center gap-2 px-6 pt-3 border-b border-slate-200 bg-slate-50/50 overflow-x-auto">
+        <button id="tab-btn-cfg-sources" class="settings-tab-btn active">
+          🛡️ Telemetry Sources
+        </button>
+        <button id="tab-btn-cfg-clients" class="settings-tab-btn">
+          🏢 Client Mappings
+        </button>
+        <button id="tab-btn-cfg-alert-types" class="settings-tab-btn">
+          ⚠️ Alert Types
+        </button>
+        <button id="tab-btn-cfg-teams" class="settings-tab-btn">
+          🚨 Escalation Teams
+        </button>
+        <button id="tab-btn-cfg-sla" class="settings-tab-btn">
+          ⏱️ Target SLA %
+        </button>
+      </div>
+
+      <!-- Settings Content Body -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs">
+        
+        <!-- SECTION 1: TELEMETRY SOURCES -->
+        <div id="cfg-section-sources" class="space-y-4">
+          <div class="p-4 bg-sky-50/60 rounded-xl border border-sky-100">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">Add New Telemetry Ingestion Source</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Add any security tool (e.g. Microsoft Sentinel, Fortinet, Palo Alto, Carbon Black). It will appear across all dropdowns, filters, and reports.</p>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="input-new-source-name" 
+                placeholder="Enter Source Name (e.g. Microsoft Sentinel, Palo Alto)..." 
+                class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-sky-500 text-xs"
+              />
+              <button id="btn-add-new-source" class="btn-molded btn-molded-primary px-4 py-2 text-xs font-bold text-white shadow-sm whitespace-nowrap">
+                + Add Source
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Active Telemetry Sources:</h4>
+            <div id="cfg-sources-list" class="flex flex-wrap gap-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: CLIENT MAPPINGS -->
+        <div id="cfg-section-clients" class="space-y-6 hidden">
+          <!-- Wazuh Clients -->
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Wazuh Clients</h4>
+                <p class="text-[11px] text-slate-500">Clients available when Wazuh is selected (Default: Giib, Indicosmic, Quantique)</p>
+              </div>
+            </div>
+            <div id="cfg-wazuh-clients-list" class="flex flex-wrap gap-2 mb-3"></div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="input-new-wazuh-client" placeholder="Add client for Wazuh..." class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-1.5 text-xs font-medium" />
+              <button id="btn-add-wazuh-client" class="btn-molded btn-molded-secondary px-3 py-1.5 text-xs font-semibold">+ Add Client</button>
+            </div>
+          </div>
+
+          <!-- Sophos Clients -->
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Sophos Clients</h4>
+                <p class="text-[11px] text-slate-500">Clients available when Sophos is selected (Current: NGM, Brysa, mirror). You can edit or rename mirror here.</p>
+              </div>
+            </div>
+            <div id="cfg-sophos-clients-list" class="flex flex-wrap gap-2 mb-3"></div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="input-new-sophos-client" placeholder="Add or change client for Sophos (e.g. mirror)..." class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-1.5 text-xs font-medium" />
+              <button id="btn-add-sophos-client" class="btn-molded btn-molded-secondary px-3 py-1.5 text-xs font-semibold">+ Add Client</button>
+            </div>
+          </div>
+
+          <!-- CrowdStrike Clients -->
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">CrowdStrike Clients</h4>
+                <p class="text-[11px] text-slate-500">Clients available when CrowdStrike is selected (Default: Internal Enterprise, Tenant Alpha, Tenant Beta)</p>
+              </div>
+            </div>
+            <div id="cfg-crowdstrike-clients-list" class="flex flex-wrap gap-2 mb-3"></div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="input-new-crowdstrike-client" placeholder="Add client for CrowdStrike..." class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-1.5 text-xs font-medium" />
+              <button id="btn-add-crowdstrike-client" class="btn-molded btn-molded-secondary px-3 py-1.5 text-xs font-semibold">+ Add Client</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: ALERT TYPES (Configurable) -->
+        <div id="cfg-section-alert-types" class="space-y-4 hidden">
+          <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-200">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">Add Custom Threat / Alert Type</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Add any security alert category (e.g. Ransomware, Zero-Day Exploit, DDoS Attack, C2 Activity). It will immediately appear in the Log Alert modal.</p>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="input-new-alert-type" 
+                placeholder="Enter Alert Type (e.g. Ransomware, DDoS Attack)..." 
+                class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-amber-500 text-xs"
+              />
+              <button id="btn-add-alert-type" class="btn-molded btn-molded-primary px-4 py-2 text-xs font-bold text-white shadow-sm whitespace-nowrap">
+                + Add Alert Type
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Configured Alert Types:</h4>
+            <div id="cfg-alert-types-list" class="flex flex-wrap gap-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: ESCALATION TEAMS (Configurable) -->
+        <div id="cfg-section-teams" class="space-y-4 hidden">
+          <div class="p-4 bg-rose-50/60 rounded-xl border border-rose-200">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">Add Escalation Team / Role</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Add any team or contact role for escalated incidents (e.g. Tier-3 Forensics, Cloud SecOps, CISO Office).</p>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                id="input-new-escalated-team" 
+                placeholder="Enter Team Name (e.g. Tier-3 Forensics, Cloud SecOps)..." 
+                class="flex-1 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-rose-500 text-xs"
+              />
+              <button id="btn-add-escalated-team" class="btn-molded btn-molded-danger px-4 py-2 text-xs font-bold text-white shadow-sm whitespace-nowrap">
+                + Add Team
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Configured Escalation Teams:</h4>
+            <div id="cfg-teams-list" class="flex flex-wrap gap-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: TARGET SLA % -->
+        <div id="cfg-section-sla" class="space-y-4 hidden">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">Monthly Target SLA Percentage</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Set your SOC team SLA response threshold (defaults to 90%).</p>
+            <div class="flex items-center gap-3">
+              <input 
+                type="number" 
+                id="cfg-target-sla-input" 
+                min="50" 
+                max="100" 
+                step="0.5" 
+                class="w-32 bg-white border border-slate-300 text-slate-900 rounded-lg px-3 py-2 text-sm font-bold font-mono-code focus:ring-2 focus:ring-sky-500" 
+              />
+              <span class="text-sm font-bold text-slate-700">%</span>
+              <button id="btn-save-cfg-sla" class="btn-molded btn-molded-primary px-4 py-2 text-xs font-bold text-white shadow-sm">
+                Save Target SLA
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Settings Footer -->
+      <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-[11px] text-slate-500 font-mono-code">Settings automatically saved to data/soc_database.json</span>
+          <button id="btn-replay-splash" class="text-xs text-sky-600 hover:text-sky-800 font-semibold flex items-center gap-1 hover:underline cursor-pointer" title="Replay 3-second animated welcome intro">
+            ✨ Replay Intro
+          </button>
+        </div>
+        <button id="btn-finish-settings" class="btn-molded btn-molded-primary px-4 py-1.5 text-xs font-bold text-white">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: TEAM LEAD (TL) DAILY INCIDENT BRIEFING & PDF EXPORT -->
+  <div id="tl-report-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 hidden">
+    <!-- Backdrop -->
+    <div id="tl-report-backdrop" class="modal-backdrop fixed inset-0"></div>
+
+    <!-- Modal Box -->
+    <div class="modal-content relative z-10 w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Top Action Bar -->
+      <div class="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 border border-sky-200 flex items-center justify-center font-bold">
+            📄
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <span>SOC L1 Daily Incident Report</span>
+              <span class="px-2 py-0.5 rounded text-[10px] bg-rose-100 text-rose-800 border border-rose-300 font-mono-code font-bold">FOR TEAM LEAD</span>
+            </h3>
+            <p class="text-[11px] text-slate-500">Zero SLA/Monthly bloat • Focused shift incidents, severities, telemetry & triage actions</p>
+          </div>
+        </div>
+
+        <!-- Print & Download CTAs -->
+        <div class="flex items-center gap-2">
+          <button id="btn-modal-copy-summary" class="btn-molded btn-molded-secondary px-3 py-1.5 text-xs font-semibold" title="Copy text summary for Slack / Teams">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            <span class="hidden sm:inline">Copy Brief</span>
+          </button>
+
+          <button id="btn-modal-print-pdf" class="btn-molded btn-molded-secondary px-3 py-1.5 text-xs font-semibold" title="Print or save as PDF using system print">
+            <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span class="hidden sm:inline">Print / Browser PDF</span>
+          </button>
+
+          <button id="btn-modal-download-pdf-direct" class="btn-molded btn-molded-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-md">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Download PDF</span>
+          </button>
+
+          <button id="btn-close-tl-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition-colors ml-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Document Preview (Formatted like Executive PDF Printout) -->
+      <div class="p-6 overflow-y-auto bg-slate-50/60" id="tl-printable-document-container">
+        <!-- Injected dynamically via renderTodayTlReport -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- FOOTER (Fluid Wide Layout) -->
+  <footer class="border-t border-slate-200/90 bg-white/80 py-4 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500 w-full mt-auto">
+    <div class="max-w-[1880px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-700 font-mono-code">JK Cyber Database Active • Permanent Disk Protection (<code class="text-sky-600 font-bold">data/soc_database.json</code>)</span>
+      </div>
+      <div>
+        <span class="text-slate-500">SOC L1 Operations & Team Lead Console • Configurable Telemetry</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Entry Point (Bundle for universal compatibility) -->
+  <script src="js/bundle.js"></script>
+</body>
+</html>

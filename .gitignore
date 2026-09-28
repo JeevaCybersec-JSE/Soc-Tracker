@@ -1,0 +1,20 @@
+# Binaries
+node.exe
+*.exe
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+
+# OS Files
+Thumbs.db
+.DS_Store
+
+# Temporary Database Backups (keep base database)
+data/backups/

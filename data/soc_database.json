@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "app": "JK SOC-L1 Cyber Tracker",
+    "version": "2.0.0",
+    "created_at": "2026-09-28T17:22:22.242Z",
+    "last_saved": "2026-09-28T17:23:57.536Z"
+  },
+  "settings": {
+    "target_sla_pct": 90,
+    "sources": [
+      "Wazuh",
+      "Sophos",
+      "CrowdStrike"
+    ],
+    "clients": {
+      "Wazuh": [
+        "Giib",
+        "Indicosmic",
+        "Quantique"
+      ],
+      "Sophos": [
+        "NGM",
+        "Brysa",
+        "mirror"
+      ],
+      "CrowdStrike": [
+        "Internal Enterprise",
+        "Tenant Alpha",
+        "Tenant Beta"
+      ]
+    },
+    "alert_types": [
+      "Malware Detection",
+      "Phishing",
+      "Brute Force",
+      "Multiple Failed Login",
+      "Successful Login",
+      "Unauthorized Access",
+      "Port Scan",
+      "Suspicious Network Traffic",
+      "Privilege Escalation",
+      "Endpoint Security",
+      "Policy Violation",
+      "Data Exfiltration",
+      "Other"
+    ],
+    "escalated_teams": [
+      "SOC L2",
+      "SOC Lead",
+      "Incident Response Team",
+      "IT Team",
+      "Network Team",
+      "Security Team",
+      "Other"
+    ]
+  },
+  "daily_notes": {},
+  "sla_logs": [],
+  "alerts": [
+    {
+      "alert_date": "2026-09-28",
+      "alert_time": "09:51:00 AM",
+      "source": "Wazuh",
+      "client": "Giib",
+      "endpoint_name": "giib-semi",
+      "ip_address": "171.103.242.10",
+      "alert_type": "Malware Detection",
+      "severity": "Medium",
+      "level": 5,
+      "status": "New",
+      "escalated": true,
+      "escalated_to": "SOC L2",
+      "resolution_time": null,
+      "remarks": "SSH Multiple Failed authentication attempt",
+      "id": "ALT-0001",
+      "created_at": "2026-09-28T17:23:57.511Z",
+      "updated_at": "2026-09-28T17:23:57.536Z"
+    }
+  ]
+}

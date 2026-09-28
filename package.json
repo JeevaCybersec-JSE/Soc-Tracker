@@ -1,0 +1,21 @@
+{
+  "name": "soc-tracker",
+  "version": "2.0.0",
+  "description": "SOC L1 Daily Security Alert Status Tracker & Live Threat Command Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "soc",
+    "cybersecurity",
+    "siem",
+    "incident-response",
+    "threat-hunting"
+  ],
+  "author": "JeevaCybersec-JSE",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
